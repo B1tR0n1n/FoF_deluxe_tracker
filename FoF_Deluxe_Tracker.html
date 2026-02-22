@@ -79,7 +79,7 @@ const C = {
   text: "#d4c9a8", textDim: "#8a7f6a", textBright: "#f0e8d0",
   accent: "#c9a227", accentDim: "#8b7320", accentBg: "rgba(201,162,39,0.08)",
   red: "#c44", green: "#4a5", blue: "#58a",
-  inputBg: "#141210", inputBorder: "#2a2620",
+  inputBg: "#0f0e0c", inputBorder: "#3d362c",
 };
 
 /* ---------- Mission data ---------- */
@@ -324,10 +324,10 @@ const ASSET_DEFS = [
   ...Array(8).fill("Illum"),...Array(2).fill("MtrIllum"),...Array(4).fill("IRScope"),
 ];
 const TC_LABELS = ["LOD","LOA","Left Bound","Right Bound","Obj 1","Obj 2","Attack Pos","MLR","COP","FPL","FPF","CCP/MEDEVAC","RegTgt 1","RegTgt 2"];
-const HQ_NAMES = ["BN HQ","CO HQ","1ST PLT HQ","2ND PLT HQ","3RD PLT HQ","CO XO (Staff)","1ST SGT (Staff)"];
+const HQ_NAMES = ["BN HQ","CO HQ","1ST PLT HQ","2ND PLT HQ","3RD PLT HQ","4TH PLT HQ","HMG PLT HQ","CO XO (Staff)","1ST SGT (Staff)"];
 
 const UNIT_DEFS = [
-  {n:"CO HQ",e:"Green",v:"S",g:"CO HQ"},{n:"CO XO",e:"Green",v:"None",g:"CO HQ"},{n:"CO 1Sgt",e:"Veteran",v:"None",g:"CO HQ"},
+  {n:"CO HQ",e:"Green",v:"None",g:"CO HQ"},{n:"CO XO",e:"Green",v:"None",g:"CO HQ"},{n:"CO 1Sgt",e:"Veteran",v:"None",g:"CO HQ"},
   {n:"MtrSec",e:"Line",v:"H",g:"WPN PLT"},{n:"1/Mtr",e:"Line",v:"G!",g:"WPN PLT"},{n:"2/Mtr",e:"Line",v:"G!",g:"WPN PLT"},
   {n:"3/Mtr",e:"Line",v:"G!",g:"WPN PLT"},{n:".50cal",e:"Line",v:"H",g:"WPN PLT"},{n:"1/LMG",e:"Line",v:"A",g:"WPN PLT"},
   {n:"2/LMG",e:"Line",v:"A",g:"WPN PLT"},{n:"1/AT",e:"Line",v:"G!",g:"WPN PLT"},{n:"2/AT",e:"Line",v:"G!",g:"WPN PLT"},
@@ -339,6 +339,7 @@ const UNIT_DEFS = [
   {n:"3PLT HQ",e:"Green",v:"None",g:"3RD PLT"},{n:"1/3",e:"Line",v:"S",g:"3RD PLT"},{n:"2/3",e:"Line",v:"S",g:"3RD PLT"},
   {n:"3/3",e:"Line",v:"S",g:"3RD PLT"},{n:"1/W/3",e:"Line",v:"A",g:"3RD PLT"},{n:"2/W/3",e:"Line",v:"G!",g:"3RD PLT"},
   {n:"4PLT HQ",e:"Line",v:"None",g:"4TH PLT"},{n:"1/4",e:"Line",v:"S",g:"4TH PLT"},{n:"2/4",e:"Line",v:"S",g:"4TH PLT"},
+  {n:"HMG PLT HQ",e:"Green",v:"None",g:"ATTACH"},{n:"1/Runner",e:"Line",v:"None",g:"ATTACH"},{n:"2/Runner",e:"Line",v:"None",g:"ATTACH"},
   {n:"57RCL1",e:"Line",v:"G!",g:"ATTACH"},{n:"57RCL2",e:"Line",v:"G!",g:"ATTACH"},{n:"57RCL3",e:"Line",v:"G!",g:"ATTACH"},
   {n:"75RCL1",e:"Line",v:"G!",g:"ATTACH"},{n:"75RCL2",e:"Line",v:"G!",g:"ATTACH"},
   {n:"Tank",e:"Line",v:"H",g:"ATTACH"},{n:"Engineers",e:"Line",v:"S",g:"ATTACH"},
@@ -403,8 +404,13 @@ const uid = () => Math.random().toString(36).slice(2,10);
    STYLED MICRO-COMPONENTS
    ══════════════════════════════════════════════════════ */
 
-const sInput = {background:C.inputBg,border:`1px solid ${C.inputBorder}`,color:C.text,padding:"4px 6px",fontSize:12,borderRadius:3,outline:"none",width:"100%",boxSizing:"border-box"};
+const sInput = {background:"#1e1a14",border:"1px solid #4a3f30",color:C.text,padding:"4px 6px",fontSize:12,fontWeight:400,borderRadius:3,outline:"none",width:"100%",boxSizing:"border-box"};
+const sInputActive = {background:"#1e1a14",border:`1px solid ${C.accent}`,color:C.text,padding:"4px 6px",fontSize:12,fontWeight:400,borderRadius:3,outline:"none",width:"100%",boxSizing:"border-box"};
 const sSelect = {...sInput, cursor:"pointer",minWidth:62};
+const sSelectActive = {...sInputActive, cursor:"pointer",minWidth:62};
+const sInl = (active,w)=>({background:"#1e1a14",color:C.text,border:active?`1px solid ${C.accent}`:"1px solid #4a3f30",borderRadius:3,padding:"2px 4px",fontSize:11,fontWeight:400,width:w||36,textAlign:"center",outline:"none"});
+const sInlSel = (active)=>({background:"#1e1a14",color:C.text,border:active?`1px solid ${C.accent}`:"1px solid #4a3f30",borderRadius:3,padding:"2px 4px",fontSize:11,fontWeight:400,flex:1});
+const sInlWide = (active,w)=>({background:"#1e1a14",color:C.text,border:active?`1px solid ${C.accent}`:"1px solid #4a3f30",borderRadius:3,padding:"4px 6px",fontSize:12,fontWeight:400,width:w||44,textAlign:"center",outline:"none"});
 const sBtn = (active) => ({
   padding:"5px 12px",fontSize:11,fontWeight:600,border:`1px solid ${active?C.accent:C.borderLt}`,
   borderRadius:4,cursor:"pointer",transition:"all 0.15s",fontFamily:"inherit",
@@ -428,12 +434,14 @@ function Inp({value,onChange,type="text",style={},placeholder="",...p}){
       r.current.value = value??"";
     }
   });
+  const hasVal = value!==undefined&&value!==null&&value!==""&&value!==0;
   return <input ref={r} type={type} defaultValue={value??""} onChange={handleChange}
-    placeholder={placeholder} style={{...sInput,...style}} {...p}/>;
+    placeholder={placeholder} style={{...(hasVal?sInputActive:sInput),...style}} {...p}/>;
 }
 function Sel({value,onChange,options,style={}}){
-  return <select value={value??""} onChange={e=>onChange(e.target.value)} style={{...sSelect,...style}}>
-    {options.map(o=><option key={o} value={o}>{o}</option>)}
+  const hasVal = value!==undefined&&value!==null&&value!==""&&value!==0&&value!=="—"&&value!=="No"&&value!=="None"&&value!=="Line";
+  return <select value={value??""} onChange={e=>onChange(e.target.value)} style={{...(hasVal?sSelectActive:sSelect),...style}}>
+    {options.map(o=>typeof o==='object'&&o!==null?<option key={o.v} value={o.v}>{o.l}</option>:<option key={o} value={o}>{o}</option>)}
   </select>;
 }
 function Section({children,title,sub}){
@@ -520,8 +528,8 @@ function FoFTracker() {
 
   /* --- COMMAND --- */
   const mkHQ = (n,ca=1,lim=6) => {
-    const hqExpMap = {"BN HQ":"Line","CO HQ":"Green","1ST PLT HQ":"Green","2ND PLT HQ":"Green","3RD PLT HQ":"Green","CO XO (Staff)":"Green","1ST SGT (Staff)":"Veteran"};
-    return {name:n,exp:hqExpMap[n]||"Line",act:"Yes",pin:"No",draw:0,vof:"None",cov:"No",autoMod:0,cmds:ca,savedP:0,total:ca,spent:0,saved:ca,limit:lim,log:[]};
+    const hqExpMap = {"BN HQ":"Line","CO HQ":"Green","1ST PLT HQ":"Green","2ND PLT HQ":"Green","3RD PLT HQ":"Green","4TH PLT HQ":"Line","HMG PLT HQ":"Green","CO XO (Staff)":"Green","1ST SGT (Staff)":"Veteran"};
+    return {name:n,exp:hqExpMap[n]||"Line",act:"Yes",pin:"No",draw:0,vof:"None",cov:0,autoMod:0,cmds:ca,savedP:0,total:ca,spent:0,saved:ca,limit:lim,log:[]};
   };
   const [hqs, setHqs] = useState([mkHQ("BN HQ",6,0),...HQ_NAMES.slice(1).map(n=>mkHQ(n))]);
   const uH = (i,f,v)=>setHqs(p=>p.map((h,j)=>j===i?{...h,[f]:v}:h));
@@ -541,14 +549,27 @@ function FoFTracker() {
   const rmCU = (i)=>setCreatedUnits(p=>p.filter((_,j)=>j!==i));
 
   /* --- NCM --- */
-  const [ncmP, setNcmP] = useState({sa:0,auto:0,hvy:0,gren:0,sniper:0,mines:0,inc:0,air:0});
+  const [showCritRef, setShowCritRef] = useState(false);
+  const [ncmP, setNcmP] = useState({allpin:false,sa:0,auto:0,hvy:0,grenCount:0,gren4Count:0,mines:0,inc:0,air:0});
   const [ncmT, setNcmT] = useState({cc:0,burst:0,cover:0});
-  const [ncmM, setNcmM] = useState({xfire:false,conc:false,exp:false,pin:false,stack:false,grenM:false,demoM:false,smoke:0,vis:0});
-  const bestVOF = Object.entries(ncmP).filter(([k,v])=>v!==0).reduce((b,[_,v])=>Math.min(b,v),99);
-  const bestVOFDisplay = bestVOF===-0.1?0:bestVOF;
+  const [ncmM, setNcmM] = useState({sniper:false,xfire:false,concN:0,exp:false,pin:false,stackN:0,grenM:false,demoM:false,smoke:0,vis:0});
+  /* VOF: All Pinned overrides — if checked, VOF = +2 regardless. Otherwise take lowest active VOF.
+     G! are cumulative: each marker is –3 or –4. grenCount = how many G! markers, each at –3.
+     If any G! rolled –4, user selects that via a –4 option per marker. For simplicity: grenCount * –3, plus user adjusts if any were –4. */
+  const gren3 = Math.max(0, ncmP.grenCount - (ncmP.gren4Count||0));
+  const gren4 = ncmP.gren4Count||0;
+  const grenVOF = (gren3 * -3) + (gren4 * -4);
+  const vofEntries = Object.entries(ncmP).filter(([k,v])=>k!=='allpin'&&k!=='grenCount'&&v!==0);
+  const lowestNonGren = vofEntries.reduce((b,[_,v])=>Math.min(b,v),99);
+  const bestVOF = ncmP.allpin ? 2 : (ncmP.grenCount > 0 ? Math.min(grenVOF, lowestNonGren < 99 ? lowestNonGren : grenVOF) : (lowestNonGren < 99 ? (lowestNonGren===-0.1?0:lowestNonGren) : 99));
+  const bestVOFDisplay = bestVOF===99?"—":(bestVOF===-0.1?0:bestVOF);
   const tMod = ncmT.cc+ncmT.burst+ncmT.cover;
-  const cMod = (ncmM.xfire?-1:0)+(ncmM.conc?-1:0)+(ncmM.exp?-2:0)+(ncmM.pin?2:0)+(ncmM.stack?-1:0)+(ncmM.grenM?-1:0)+(ncmM.demoM?-2:0)+ncmM.smoke+ncmM.vis;
-  const NCM = (bestVOF<99?(bestVOF===-0.1?0:bestVOF):0)+tMod+cMod;
+  /* Stacking: –1 per step >3 under cover, applies to G!, Incoming! and Air Strike! VOF (§5.3) */
+  const hasGrenIncAir = ncmP.grenCount>0 || ncmP.inc!==0 || ncmP.air!==0;
+  const stackMod = hasGrenIncAir ? (ncmM.stackN * -1) : 0;
+  const cMod = (ncmM.sniper?-3:0)+(ncmM.xfire?-1:0)+(ncmM.concN*-1)+(ncmM.exp?-2:0)+(ncmM.pin?1:0)+stackMod+(ncmM.grenM?-1:0)+(ncmM.demoM?-2:0)+ncmM.smoke+ncmM.vis;
+  const rawNCM = (bestVOF<99&&bestVOF!==-0.1?bestVOF:bestVOF===-0.1?0:(bestVOF===99?0:0))+tMod+cMod;
+  const NCM = Math.max(-4, Math.min(6, rawNCM));
 
   /* --- ENEMY --- */
   const [enemies, setEnemies] = useState([]);
@@ -564,6 +585,7 @@ function FoFTracker() {
   const [fmLog, setFmLog] = useState([]);
   const addFML = ()=>setFmLog(p=>[...p,{id:uid(),turn,agency:"",type:"",target:"",obs:"",result:"",notes:""}]);
   const uFML = (i,f,v)=>setFmLog(p=>p.map((x,j)=>j===i?{...x,[f]:v}:x));
+  const rmFML = (i)=>setFmLog(p=>p.filter((_,j)=>j!==i));
 
   /* --- COMMS --- */
   const [radios, setRadios] = useState(RADIO_DEFS.map(r=>({...r,assigned:"",loc:"",status:"",notes:""})));
@@ -578,13 +600,14 @@ function FoFTracker() {
   const [journal, setJournal] = useState([]);
   const addJ = ()=>setJournal(p=>[...p,{id:uid(),turn,phase:"",event:"",unit:"",detail:"",result:"",notes:""}]);
   const uJ = (i,f,v)=>setJournal(p=>p.map((x,j)=>j===i?{...x,[f]:v}:x));
+  const rmJ = (i)=>setJournal(p=>p.filter((_,j)=>j!==i));
 
   /* --- MAP --- */
   const [mapD, setMapD] = useState({vof:0,spot:0,joint:0,mines:"No",pending:"No"});
   const [cards, setCards] = useState([]);
   useEffect(()=>{
-    const arr=[];
-    for(let r=1;r<=6;r++)for(let c=1;c<=6;c++)
+    const mr=m.rows||6, mc=m.cols||6, arr=[];
+    for(let r=1;r<=mr;r++)for(let c=1;c<=mc;c++)
       arr.push({id:`R${r}C${c}`,terrain:"",cc:0,pc:"",cleared:"",us:"",enemy:"",cover:"",notes:""});
     setCards(arr);
   },[mission]);
@@ -594,9 +617,11 @@ function FoFTracker() {
   const [mResults, setMR] = useState([]);
   const addMR = ()=>setMR(p=>[...p,{id:uid(),mission,result:"",turns:0,frKIA:0,enKIA:0,exp:"",repl:0,notes:""}]);
   const uMR = (i,f,v)=>setMR(p=>p.map((x,j)=>j===i?{...x,[f]:v}:x));
+  const rmMR = (i)=>setMR(p=>p.filter((_,j)=>j!==i));
   const [repls, setRepls] = useState([]);
   const addRepl = ()=>setRepls(p=>[...p,{id:uid(),after:"",green:0,vet:0,total:0,unit:"",steps:0,exp:"Green",notes:""}]);
   const uRepl = (i,f,v)=>setRepls(p=>p.map((x,j)=>j===i?{...x,[f]:v}:x));
+  const rmRepl = (i)=>setRepls(p=>p.filter((_,j)=>j!==i));
 
   /* --- TURN SEQUENCE --- */
   const [checks, setChecks] = useState({});
@@ -623,9 +648,9 @@ function FoFTracker() {
       if(s.campaign)setCampaign(s.campaign);if(s.mission)setMission(s.mission);
       if(s.turn!=null)setTurn(s.turn);if(s.actLvl)setActLvl(s.actLvl);
       if(s.overrides)setOverrides(s.overrides);if(s.tcs)setTcs(s.tcs);
-      if(s.units)setUnits(s.units);if(s.hqs)setHqs(s.hqs);
+      if(s.units)setUnits(s.units);if(s.hqs){const hqs=s.hqs.map(h=>{if(typeof h.cov==='string'){h.cov=h.cov==='Yes'?1:0;}return h;});setHqs(hqs);}
       if(s.cmdGrids)setCmdGrids(s.cmdGrids);if(s.createdUnits)setCreatedUnits(s.createdUnits);
-      if(s.ncmP)setNcmP(s.ncmP);if(s.ncmT)setNcmT(s.ncmT);if(s.ncmM)setNcmM(s.ncmM);
+      if(s.ncmP){const p={...s.ncmP};if(p.allpin===undefined)p.allpin=false;if(typeof p.allpin==='number')p.allpin=p.allpin!==0;if(p.grenCount===undefined){p.grenCount=0;if(p.gren){p.grenCount=1;delete p.gren;}}if(p.gren4Count===undefined)p.gren4Count=0;if(p.sniper!==undefined)delete p.sniper;setNcmP(p);}if(s.ncmT)setNcmT(s.ncmT);if(s.ncmM){const m={...s.ncmM};if(m.concN===undefined)m.concN=m.conc?1:0;if(m.grenM===undefined)m.grenM=!!(m.grenMN&&m.grenMN>0);if(m.grenMN!==undefined){m.grenM=m.grenMN>0;delete m.grenMN;}if(m.sniper===undefined)m.sniper=false;if(m.stackN===undefined){m.stackN=m.stack?1:0;delete m.stack;}delete m.conc;setNcmM(m);}
       if(s.enemies)setEnemies(s.enemies);if(s.wpns)setWpns(s.wpns);
       if(s.fms)setFms(s.fms);if(s.fmLog)setFmLog(s.fmLog);
       if(s.radios)setRadios(s.radios);if(s.assets)setAssets(s.assets);
@@ -637,7 +662,7 @@ function FoFTracker() {
     }catch(e){console.error("Load error:",e);}
   };
 
-  /* auto-save every 5 seconds */
+  /* auto-save every 5 minutes */
   const stateRef = useRef();
   stateRef.current = getState;
   useEffect(()=>{
@@ -810,11 +835,11 @@ function FoFTracker() {
       setAssets(ASSET_DEFS.map(a=>({asset:a,qty:1,assigned:"",loc:"",used:"No",notes:""})));
       setPyros([]);setJournal([]);
       setMapD({vof:0,spot:0,joint:0,mines:"No",pending:"No"});
-      const arr=[];for(let r=1;r<=6;r++)for(let c=1;c<=6;c++)arr.push({id:`R${r}C${c}`,terrain:"",cc:0,pc:"",cleared:"",us:"",enemy:"",cover:"",notes:""});
+      const mr=m.rows||6,mc=m.cols||6,arr=[];for(let r=1;r<=mr;r++)for(let c=1;c<=mc;c++)arr.push({id:`R${r}C${c}`,terrain:"",cc:0,pc:"",cleared:"",us:"",enemy:"",cover:"",notes:""});
       setCards(arr);
-      setNcmP({sa:0,auto:0,hvy:0,gren:0,sniper:0,mines:0,inc:0,air:0});
+      setNcmP({allpin:false,sa:0,auto:0,hvy:0,grenCount:0,gren4Count:0,mines:0,inc:0,air:0});
       setNcmT({cc:0,burst:0,cover:0});
-      setNcmM({xfire:false,conc:false,exp:false,pin:false,stack:false,grenM:false,demoM:false,smoke:0,vis:0});
+      setNcmM({sniper:false,xfire:false,concN:0,exp:false,pin:false,stackN:0,grenM:false,demoM:false,smoke:0,vis:0});
       flash("New mission started — campaign log preserved");
     };
     const resetAll = ()=>{
@@ -940,32 +965,54 @@ function FoFTracker() {
         <span>Turn: <b style={{color:C.accent}}>{turn}</b></span>
         <span>Activity: <b style={{color:C.accent}}>{actLvl}</b></span>
       </div>
-      {hqs.map((h,hi)=><div key={h.name} style={{background:C.panel,border:`1px solid ${C.border}`,borderRadius:6,padding:12,marginBottom:8}}>
+      {hqs.map((h,hi)=>{
+        const isBN = h.name==="BN HQ";
+        const isStaff = h.name==="CO XO (Staff)"||h.name==="1ST SGT (Staff)";
+        const isActivated = h.act==="Yes";
+        const expMod = h.exp==="Green"?-1:h.exp==="Veteran"?1:0;
+        const pinMod = h.pin==="Yes"?-1:0;
+        const covMod = h.cov?1:0;
+        const vofMod = h.vof==="None"?0:h.vof==="S"?-1:(h.vof==="A"?-2:-3);
+        const noConMod = (actLvl==="No Contact")?1:0;
+        const totalMod = expMod+pinMod+covMod+vofMod+noConMod;
+        const rawCmds = h.draw+totalMod;
+        const cmdMin = isActivated ? 1 : 0;
+        const totalCmds = isBN ? h.draw : (isStaff && !isActivated ? 1 : Math.max(cmdMin, rawCmds));
+        const wasClamped = !isBN && totalCmds !== rawCmds;
+        return <div key={h.name} style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:6,padding:12,marginBottom:8}}>
         <div style={{fontSize:12,fontWeight:700,color:C.accent,marginBottom:8}}>{h.name}</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,fontSize:11,marginBottom:6}}>
           <div style={{display:"flex",alignItems:"center",gap:4}}><span style={sLabel}>Exp</span><Sel value={h.exp} onChange={v=>uH(hi,"exp",v)} options={EXP}/></div>
-          <div style={{display:"flex",alignItems:"center",gap:4}}><span style={sLabel}>Act</span><Sel value={h.act} onChange={v=>uH(hi,"act",v)} options={["Yes","No"]}/></div>
+          {!isBN&&<div style={{display:"flex",alignItems:"center",gap:4}}><span style={sLabel}>Act</span><Sel value={h.act} onChange={v=>uH(hi,"act",v)} options={["Yes","No"]}/></div>}
           <div style={{display:"flex",alignItems:"center",gap:4}}><span style={sLabel}>Pin</span><Sel value={h.pin} onChange={v=>uH(hi,"pin",v)} options={["Yes","No"]}/></div>
           <div style={{display:"flex",alignItems:"center",gap:4}}><span style={sLabel}>VOF</span><Sel value={h.vof} onChange={v=>uH(hi,"vof",v)} options={["None","S","A","H","G!","S!","D!","F!","Inc!","Air!"]} style={{minWidth:70}}/></div>
-          <div style={{display:"flex",alignItems:"center",gap:4}}><span style={sLabel}>Cov</span><Sel value={h.cov} onChange={v=>uH(hi,"cov",v)} options={["Yes","No"]} style={{minWidth:52}}/></div>
+          <div style={{display:"flex",alignItems:"center",gap:4}}>
+            <span style={sLabel}>Cov</span>
+            <Sel value={h.cov?"Yes":"No"} onChange={v=>uH(hi,"cov",v==="Yes"?1:0)} options={["No","Yes"]} style={{minWidth:56}}/>
+          </div>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,fontSize:11,background:C.inputBg,borderRadius:4,padding:10,marginBottom:6}}>
-          <div style={{display:"flex",alignItems:"center",gap:4}}>
-            <span style={{color:C.textDim,fontSize:10}}>Draw:</span>
-            <Inp type="number" value={h.draw} onChange={v=>uH(hi,"draw",v)} style={{width:42,textAlign:"center"}}/>
+        <div style={{fontSize:11,borderRadius:4,padding:10,marginBottom:6}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6,marginBottom:6}}>
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <span style={{color:C.textDim,fontSize:10}}>Draw:</span>
+              <Inp type="number" value={h.draw} onChange={v=>uH(hi,"draw",v)} style={{width:42,textAlign:"center"}}/>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <span style={{color:C.textDim,fontSize:10}}>Total:</span>
+              <span style={{color:C.accent,fontWeight:700,fontSize:14}}>{totalCmds}</span>
+              {wasClamped && <span style={{fontSize:9,color:"#e07050",marginLeft:2}}>min {cmdMin}</span>}
+              {isBN && <span style={{fontSize:9,color:C.textDim,marginLeft:2}}>(fixed)</span>}
+            </div>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:4}}>
-            <span style={{color:C.textDim,fontSize:10}}>Exp Mod:</span>
-            <span style={{color:C.accent,fontWeight:700,fontSize:13}}>{h.exp==="Green"?-1:h.exp==="Veteran"?1:0}</span>
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:4}}>
-            <span style={{color:C.textDim,fontSize:10}}>Other +/−:</span>
-            <Inp type="number" value={h.autoMod} onChange={v=>uH(hi,"autoMod",v)} style={{width:42,textAlign:"center"}}/>
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:4}}>
-            <span style={{color:C.textDim,fontSize:10}}>Total:</span>
-            <span style={{color:C.accent,fontWeight:700,fontSize:13}}>{h.draw+(h.exp==="Green"?-1:h.exp==="Veteran"?1:0)+(h.autoMod||0)}</span>
-          </div>
+          {!isBN && <div style={{display:"flex",flexWrap:"wrap",gap:4,fontSize:9,color:C.textDim,borderTop:`1px solid ${C.border}`,paddingTop:4}}>
+            <span>Draw:{h.draw}</span>
+            {expMod!==0&&<span style={{color:expMod>0?"#50b080":"#e07050"}}>Exp:{expMod>0?"+":""}{expMod}</span>}
+            {pinMod!==0&&<span style={{color:"#e07050"}}>Pin:{pinMod}</span>}
+            {covMod!==0&&<span style={{color:"#50b080"}}>Cov:+{covMod}</span>}
+            {vofMod!==0&&<span style={{color:"#e07050"}}>VOF:{vofMod}</span>}
+            {noConMod!==0&&<span style={{color:"#50b080"}}>NoCon:+1</span>}
+            <span style={{color:C.accent}}>= {rawCmds}</span>
+          </div>}
         </div>
         {/* Commands Used - inline under this HQ */}
         <div style={{marginTop:6,marginBottom:4}}>
@@ -989,7 +1036,7 @@ function FoFTracker() {
             </table>
           </div>
         </div>
-      </div>)}
+      </div>})}
     </Section>
   </div>;
 
@@ -998,77 +1045,174 @@ function FoFTracker() {
      ═══════════════════════════════════════════ */
   const renderCombat = () => <div>
     <Section title="NCM Calculator">
-      <Section title="Step 1: VOF Present on Card (select combat modifier)" sub>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
+      <div style={{fontSize:10,color:C.textDim,padding:"4px 10px",background:C.inputBg,borderRadius:4,marginBottom:8,fontStyle:"italic"}}>
+        NCM = lowest VOF modifier + terrain/cover + all applicable modifiers (min –4, max +6)
+      </div>
+      <Section title="Step 1: VOF on Card (use only the lowest)" sub>
+        <div style={{marginBottom:6}}>
+          <label style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",cursor:"pointer",fontSize:11,
+            borderRadius:3,background:"transparent",border:"1px solid transparent"}}>
+            <input type="checkbox" checked={ncmP.allpin} onChange={()=>setNcmP(p=>({...p,allpin:!p.allpin}))} style={{accentColor:C.accent}}/>
+            <span style={{color:ncmP.allpin?C.accent:C.textDim,fontWeight:ncmP.allpin?700:400}}>All Pinned → +2 (overrides all other VOF)</span>
+          </label>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4,opacity:ncmP.allpin?0.35:1,pointerEvents:ncmP.allpin?"none":"auto"}}>
           {[["sa","Small Arms (S)",   [{v:-0.1,l:"0"}]],
             ["auto","Automatic (A)",   [{v:-1,l:"–1"}]],
             ["hvy","Heavy (H)",        [{v:-3,l:"–3"}]],
-            ["gren","Grenade (G!)",    [{v:-3,l:"–3"},{v:-4,l:"–4"}]],
-            ["sniper","Sniper (S!)",   [{v:-3,l:"–3"}]],
             ["mines","Mines!",         [{v:-4,l:"–4"}]]
           ].map(([k,label,opts])=><div key={k} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",
-            borderRadius:3,background:ncmP[k]!==0?`${C.accent}15`:"transparent"}}>
+            borderRadius:3,background:"transparent"}}>
             <span style={{color:ncmP[k]!==0?C.text:C.textDim,fontSize:11,minWidth:110,whiteSpace:"nowrap"}}>{label}</span>
             <select value={ncmP[k]} onChange={e=>setNcmP(p=>({...p,[k]:Number(e.target.value)}))}
-              style={{background:C.inputBg,color:C.text,border:`1px solid ${C.border}`,borderRadius:3,padding:"2px 4px",fontSize:11,flex:1}}>
+              style={sInlSel(ncmP[k]!==0)}>
               <option value={0}>—</option>
               {opts.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
             </select>
           </div>)}
+          <div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",gridColumn:"1/-1",
+            borderRadius:3,background:"transparent"}}>
+            <span style={{color:ncmP.grenCount>0?C.text:C.textDim,fontSize:11,whiteSpace:"nowrap"}}>Grenade (G!)</span>
+            <span style={{fontSize:10,color:C.textDim}}>Total:</span>
+            <input type="number" min="0" max="6" value={ncmP.grenCount||""} placeholder="0"
+              onChange={e=>{const v=e.target.value;const n=v===""?0:Math.max(0,Number(v));setNcmP(p=>({...p,grenCount:n,gren4Count:Math.min(p.gren4Count||0,n)}))}}
+              style={sInl(ncmP.grenCount>0)}/>
+            {ncmP.grenCount>0&&<><span style={{fontSize:10,color:C.textDim}}>of which at –4:</span>
+            <input type="number" min="0" max={ncmP.grenCount} value={ncmP.gren4Count||""} placeholder="0"
+              onChange={e=>{const v=e.target.value;setNcmP(p=>({...p,gren4Count:v===""?0:Math.max(0,Math.min(p.grenCount,Number(v)))}))}}
+              style={sInl(ncmP.gren4Count>0)}/></>}
+            <span style={{fontSize:10,color:C.textDim}}>= {ncmP.grenCount>0?grenVOF:"—"}</span>
+          </div>
         </div>
-        <div style={{marginTop:6,borderTop:`1px solid ${C.border}`,paddingTop:6}}>
+        <div style={{marginTop:6,borderTop:`1px solid ${C.border}`,paddingTop:6,opacity:ncmP.allpin?0.35:1,pointerEvents:ncmP.allpin?"none":"auto"}}>
           <div style={{fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:0.4,color:C.textDim,marginBottom:4}}>Varies — per mission instructions</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
             {[["inc","Incoming!"],["air","Air Strike!"]].map(([k,label])=><div key={k} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",
-              borderRadius:3,background:ncmP[k]!==0?`${C.accent}15`:"transparent"}}>
+              borderRadius:3,background:"transparent"}}>
               <span style={{color:ncmP[k]!==0?C.text:C.textDim,fontSize:11,minWidth:110,whiteSpace:"nowrap"}}>{label}</span>
-              <input type="number" value={ncmP[k]||""} placeholder="NCM"
-                onChange={e=>{const v=e.target.value;setNcmP(p=>({...p,[k]:v===""?0:Number(v)}))}}
-                style={{background:C.inputBg,color:C.text,border:`1px solid ${C.border}`,borderRadius:3,padding:"2px 6px",fontSize:11,width:56,textAlign:"center",outline:"none"}}/>
+              <input type="number" max="0" value={ncmP[k]||""} placeholder="NCM"
+                onChange={e=>{const v=e.target.value;setNcmP(p=>({...p,[k]:v===""?0:Math.min(0,Number(v))}))}}
+                style={sInl(ncmP[k]!==0,56)}/>
             </div>)}
           </div>
         </div>
         <div style={{marginTop:6,padding:"6px 10px",background:C.inputBg,borderRadius:4,fontSize:12}}>
           <span style={{color:C.textDim}}>Strongest VOF: </span>
-          <b style={{color:C.accent}}>{bestVOF<99?(bestVOF===-0.1?0:bestVOF):"—"}</b>
+          <b style={{color:C.accent}}>{bestVOFDisplay}</b>
+          {ncmP.allpin && <span style={{fontSize:10,color:C.accent,marginLeft:8}}>(All Pinned override)</span>}
           <div style={{marginTop:4,fontSize:10,color:C.textDim,fontStyle:"italic"}}>Flame (§6.5.3) and Demo (§6.5.2) resolve outside NCM. Demo Miss → –2 is under Step 3.</div>
         </div>
       </Section>
-      <Section title="Step 2: Terrain & Cover (enter values from card)" sub>
+      <Section title="Step 2: Status of Defending Unit (per unit, enter from card)" sub>
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
-          {[["cc","Card C&C"],["burst","Burst Mod"],["cover","Cover Mod"]].map(([k,l])=>
-            <div key={k} style={{display:"flex",alignItems:"center",gap:4}}>
-              <span style={sLabel}>{l}</span><Inp type="number" value={ncmT[k]} onChange={v=>setNcmT(p=>({...p,[k]:v}))} style={{width:44}}/>
-            </div>
-          )}
+          <div style={{display:"flex",alignItems:"center",gap:4}}>
+            <span style={{...sLabel,color:ncmT.cc>0?C.text:C.textDim}}>Card C&C</span>
+            <input type="number" min="0" value={ncmT.cc||""} placeholder="0"
+              onChange={e=>{const v=e.target.value;setNcmT(p=>({...p,cc:v===""?0:Math.max(0,Number(v))}))}}
+              style={sInlWide(ncmT.cc>0)}/>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:4}}>
+            <span style={{...sLabel,color:ncmT.burst<0?C.text:C.textDim}}>Burst Mod</span>
+            <input type="number" max="0" value={ncmT.burst||""} placeholder="0"
+              onChange={e=>{const v=e.target.value;setNcmT(p=>({...p,burst:v===""?0:Math.min(0,Number(v))}))}}
+              style={sInlWide(ncmT.burst<0)}/>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:4}}>
+            <span style={{...sLabel,color:ncmT.cover>0?C.text:C.textDim}}>Cover Mod</span>
+            <input type="number" min="0" value={ncmT.cover||""} placeholder="0"
+              onChange={e=>{const v=e.target.value;setNcmT(p=>({...p,cover:v===""?0:Math.max(0,Number(v))}))}}
+              style={sInlWide(ncmT.cover>0)}/>
+          </div>
         </div>
         <div style={{marginTop:6,fontSize:11,color:C.textDim,padding:"4px 10px",background:C.inputBg,borderRadius:4}}>
-          Terrain Total: <span style={{color:C.accent}}>{tMod}</span>
+          Terrain/Cover Total: <span style={{color:C.accent}}>{tMod}</span>
         </div>
       </Section>
-      <Section title="Step 3: Combat Modifiers" sub>
+      <Section title="Step 3: Other Modifiers (use all that apply)" sub>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:2}}>
-          {[["xfire","Crossfire → –1"],["conc","Concentrated Fire → –1"],["exp","Exposed → –2"],["pin","Target Pinned → +2"],["stack","Stacking >3 → –1"],
-            ["grenM","Grenade Miss → –1"],["demoM","Demo Miss → –2"]
+          {[["sniper","Sniper → –3 (target only)"],["xfire","Crossfire → –1 (once/card)"],["exp","Exposed → –2"],["pin","Target Pinned → +1"],
+            ["grenM","Rocket/Grenade Miss → –1 (once/card)"],["demoM","Demo Miss → –2"]
           ].map(([k,l])=><label key={k} style={{display:"flex",alignItems:"center",gap:6,padding:"3px 8px",cursor:"pointer",fontSize:11,
-            borderRadius:3,background:ncmM[k]?`${C.accent}15`:"transparent"}}>
+            borderRadius:3,background:"transparent"}}>
             <input type="checkbox" checked={ncmM[k]} onChange={()=>setNcmM(p=>({...p,[k]:!p[k]}))} style={{accentColor:C.accent}}/>
             <span style={{color:ncmM[k]?C.text:C.textDim}}>{l}</span>
           </label>)}
         </div>
+        <div style={{marginTop:4,display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
+          <div style={{display:"flex",alignItems:"center",gap:6,padding:"3px 8px",borderRadius:3,background:"transparent"}}>
+            <span style={{color:ncmM.concN>0?C.text:C.textDim,fontSize:11,flex:1}}>Concentrated Fire (–1 ea)</span>
+            <input type="number" min="0" max="9" value={ncmM.concN||""} placeholder="0"
+              onChange={e=>{const v=e.target.value;setNcmM(p=>({...p,concN:v===""?0:Math.max(0,Number(v))}))}}
+              style={sInl(ncmM.concN>0)}/>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:6,padding:"3px 8px",borderRadius:3,
+            background:"transparent",opacity:hasGrenIncAir?1:0.4}}>
+            <span style={{color:ncmM.stackN>0&&hasGrenIncAir?C.text:C.textDim,fontSize:11,flex:1}}>Steps &gt;3 under cover (–1 ea)</span>
+            <input type="number" min="0" max="9" value={ncmM.stackN||""} placeholder="0"
+              onChange={e=>{const v=e.target.value;setNcmM(p=>({...p,stackN:v===""?0:Math.max(0,Number(v))}))}}
+              style={sInl(ncmM.stackN>0&&hasGrenIncAir)}/>
+            {!hasGrenIncAir && <span style={{fontSize:9,color:C.textDim,fontStyle:"italic"}}>G!/Inc!/Air! only</span>}
+          </div>
+        </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginTop:6}}>
           {[["smoke","Smoke/WP Mod"],["vis","Visibility Mod"]].map(([k,l])=>
             <div key={k} style={{display:"flex",alignItems:"center",gap:4}}>
-              <span style={{...sLabel,width:100}}>{l}</span><Inp type="number" value={ncmM[k]} onChange={v=>setNcmM(p=>({...p,[k]:v}))} style={{width:44}}/>
+              <span style={{...sLabel,width:100,color:ncmM[k]!==0?C.text:C.textDim}}>{l}</span><Inp type="number" value={ncmM[k]} onChange={v=>setNcmM(p=>({...p,[k]:v}))} style={{width:44}}/>
             </div>
           )}
         </div>
         <div style={{marginTop:6,fontSize:11,color:C.textDim,padding:"4px 10px",background:C.inputBg,borderRadius:4}}>
-          Total Mods: <span style={{color:C.accent}}>{cMod}</span>
+          Other Mods: <span style={{color:C.accent}}>{cMod}</span>
+          {ncmM.sniper && <span style={{fontSize:10,marginLeft:8,color:C.textDim}}>(reminder: rest of card under S VOF)</span>}
         </div>
       </Section>
-      <div style={{marginTop:12,textAlign:"center",padding:"12px 16px",background:`${C.accent}15`,border:`1px solid ${C.accent}40`,borderRadius:8,fontSize:18,fontWeight:700,color:C.textBright}}>
-        FINAL NCM → <span style={{color:C.accent}}>{NCM>=0?`+${NCM}`:NCM}</span>
+      <div style={{marginTop:12,textAlign:"center",padding:"12px 16px",background:`${C.accent}15`,border:`1px solid ${C.accent}40`,borderRadius:8}}>
+        <div style={{fontSize:18,fontWeight:700,color:C.textBright}}>
+          FINAL NCM → <span style={{color:C.accent}}>{NCM>=0?`+${NCM}`:NCM}</span>
+        </div>
+        {rawNCM !== NCM && <div style={{fontSize:10,color:C.textDim,marginTop:4}}>
+          (unclamped: {rawNCM>=0?`+${rawNCM}`:rawNCM} → clamped to {NCM>=0?`+${NCM}`:NCM})
+        </div>}
+        <div style={{fontSize:10,color:C.textDim,marginTop:4}}>Draw Action Card → cross-reference NCM column for HIT / PIN / MISS</div>
+      </div>
+      <div style={{marginTop:8}}>
+        <button onClick={()=>setShowCritRef(p=>!p)} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:4,padding:"6px 12px",
+          color:showCritRef?C.accent:C.textDim,fontSize:11,cursor:"pointer",width:"100%",textAlign:"left",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <span>{showCritRef?"▾":"▸"} Critical Hit / Hit Effect Reference (§6.4.3–6.4.4)</span>
+          <span style={{fontSize:9,color:C.textDim}}>{showCritRef?"collapse":"expand"}</span>
+        </button>
+        {showCritRef && <div style={{border:`1px solid ${C.border}`,borderTop:"none",borderRadius:"0 0 4px 4px",padding:12,fontSize:11}}>
+          <div style={{fontWeight:700,color:C.accent,marginBottom:6,fontSize:12}}>Combat Resolution</div>
+          <div style={{display:"grid",gridTemplateColumns:"60px 1fr",gap:"4px 8px",marginBottom:10}}>
+            <span style={{color:"#50b080",fontWeight:700}}>MISS</span><span style={{color:C.text}}>No effect. If target was Pinned, remove Pinned marker.</span>
+            <span style={{color:C.accent,fontWeight:700}}>PIN</span><span style={{color:C.text}}>Place Pinned marker on target. VOF becomes Pinned (+2). Unit limited to Rally actions.</span>
+            <span style={{color:"#e07050",fontWeight:700}}>HIT</span><span style={{color:C.text}}>Draw another Action Card → check Hit Effect section (see below).</span>
+          </div>
+          <div style={{fontWeight:700,color:C.accent,marginBottom:6,fontSize:12}}>Hit Effect (§6.4.3)</div>
+          <div style={{color:C.text,marginBottom:6}}>Draw a new Action Card. Find the Hit Effect section. Use the column matching the target's Experience Level (Green / Line / Veteran). Apply the letter codes in order — first letter = 1st step lost, second letter = 2nd step lost:</div>
+          <div style={{display:"grid",gridTemplateColumns:"40px 1fr",gap:"3px 8px",marginBottom:10}}>
+            <span style={{color:"#e07050",fontWeight:700}}>C</span><span style={{color:C.text}}>Casualty — step removed from play permanently</span>
+            <span style={{color:"#e07050",fontWeight:700}}>P</span><span style={{color:C.text}}>Paralyzed — flip step to Paralyzed Team (cannot act, must be rallied)</span>
+            <span style={{color:C.accent,fontWeight:700}}>L</span><span style={{color:C.text}}>Litter — flip step to Litter Team (must be carried, slows movement)</span>
+            <span style={{color:C.accent,fontWeight:700}}>F</span><span style={{color:C.text}}>Fire Team — convert step to Fire Team (reduced capability)</span>
+            <span style={{color:"#50b080",fontWeight:700}}>A</span><span style={{color:C.text}}>Assault Team — convert step to Assault Team (still effective)</span>
+          </div>
+          <div style={{color:C.textDim,fontSize:10,marginBottom:8}}>Severity: C {">"} P {">"} L {">"} F {">"} A. For HQs/FOs/Weapons Teams with a Fire Team side, flip to that side on any hit.</div>
+          <div style={{fontWeight:700,color:C.accent,marginBottom:6,fontSize:12}}>Critical Hit (§6.4.4)</div>
+          <div style={{color:C.text,marginBottom:6}}>If the Action Card drawn for combat resolution shows a grenade icon (critical hit symbol):</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr",gap:4}}>
+            <div style={{padding:"4px 8px",background:`${C.accent}08`,borderRadius:3,color:C.text}}>
+              <span style={{fontWeight:700}}>1.</span> Target is under a Cover marker → <span style={{color:"#e07050",fontWeight:600}}>remove the Cover marker</span>, then resolve the hit normally.
+            </div>
+            <div style={{padding:"4px 8px",background:`${C.accent}08`,borderRadius:3,color:C.text}}>
+              <span style={{fontWeight:700}}>2.</span> Target is NOT under Cover → <span style={{color:"#e07050",fontWeight:600}}>place a G! marker on the target</span> (double grenade effect), then resolve the hit normally.
+            </div>
+            <div style={{padding:"4px 8px",background:`${C.accent}08`,borderRadius:3,color:C.text}}>
+              <span style={{fontWeight:700}}>3.</span> Critical Hit is <span style={{fontWeight:600}}>in addition to</span> the normal HIT/PIN/MISS result — resolve both.
+            </div>
+          </div>
+          <div style={{color:C.textDim,fontSize:10,marginTop:8,fontStyle:"italic"}}>Note: Grenade Critical Hits (§7.10.3) follow the same logic — 2+ grenade icons on the attack card = critical hit on the grenade attack.</div>
+        </div>}
       </div>
     </Section>
   </div>;
@@ -1128,7 +1272,7 @@ function FoFTracker() {
     </Section>
     <Section title="FM Log" sub>
       <button onClick={addFML} style={{...sBtn(false),marginBottom:6}}>+ Add FM Log</button>
-      {fmLog.length>0 && <Table heads={[{l:"T",w:34},{l:"Agency",w:90},{l:"Type",w:70},{l:"Target",w:80},{l:"Observer",w:80},{l:"Result",w:80},{l:"Notes"}]}>
+      {fmLog.length>0 && <Table heads={[{l:"T",w:34},{l:"Agency",w:90},{l:"Type",w:70},{l:"Target",w:80},{l:"Observer",w:80},{l:"Result",w:80},{l:"Notes"},{l:"",w:28}]}>
         {fmLog.map((f,i)=><tr key={f.id}>
           <td style={{...sTd,color:C.accent,fontWeight:600,textAlign:"center"}}>{f.turn}</td>
           <td style={sTd}><Inp value={f.agency} onChange={v=>uFML(i,"agency",v)} style={{minWidth:80}}/></td>
@@ -1137,6 +1281,7 @@ function FoFTracker() {
           <td style={sTd}><Inp value={f.obs} onChange={v=>uFML(i,"obs",v)} style={{minWidth:70}}/></td>
           <td style={sTd}><Inp value={f.result} onChange={v=>uFML(i,"result",v)} style={{minWidth:70}}/></td>
           <td style={sTd}><Inp value={f.notes} onChange={v=>uFML(i,"notes",v)}/></td>
+          <td style={sTd}><button onClick={()=>rmFML(i)} style={{background:"none",border:"none",color:C.red,cursor:"pointer",fontSize:13}}>✕</button></td>
         </tr>)}
       </Table>}
     </Section>
@@ -1189,7 +1334,7 @@ function FoFTracker() {
   const renderJournal = () => <div>
     <Section title="Battle Journal">
       <button onClick={addJ} style={{...sBtn(false),marginBottom:8}}>+ Add Entry</button>
-      {journal.length>0 && <Table heads={[{l:"T",w:34},{l:"Phase",w:60},{l:"Event"},{l:"Unit",w:64},{l:"Detail"},{l:"Result",w:70},{l:"Notes"}]}>
+      {journal.length>0 && <Table heads={[{l:"T",w:34},{l:"Phase",w:60},{l:"Event"},{l:"Unit",w:64},{l:"Detail"},{l:"Result",w:70},{l:"Notes"},{l:"",w:28}]}>
         {journal.map((j,i)=><tr key={j.id}>
           <td style={{...sTd,color:C.accent}}>{j.turn}</td>
           <td style={sTd}><Inp value={j.phase} onChange={v=>uJ(i,"phase",v)}/></td>
@@ -1198,6 +1343,7 @@ function FoFTracker() {
           <td style={sTd}><Inp value={j.detail} onChange={v=>uJ(i,"detail",v)}/></td>
           <td style={sTd}><Inp value={j.result} onChange={v=>uJ(i,"result",v)}/></td>
           <td style={sTd}><Inp value={j.notes} onChange={v=>uJ(i,"notes",v)}/></td>
+          <td style={sTd}><button onClick={()=>rmJ(i)} style={{background:"none",border:"none",color:C.red,cursor:"pointer",fontSize:13}}>✕</button></td>
         </tr>)}
       </Table>}
     </Section>
@@ -1219,7 +1365,7 @@ function FoFTracker() {
         <div style={{display:"flex",alignItems:"center",gap:4}}><span style={{...sLabel,color:C.accent,fontSize:11}}>ACTIVITY: {actLvl.toUpperCase()}</span></div>
       </div>
     </Section>
-    <Section title="Card Tracker (6×6)" sub>
+    <Section title={`Card Tracker (${m.rows||6}×${m.cols||6})`} sub>
       <Table heads={[{l:"Card",w:52},{l:"Terrain",w:90},{l:"C&C",w:48},{l:"PC",w:52},{l:"Clr",w:52},{l:"US"},{l:"Enemy"},{l:"Cover",w:80},{l:"Notes"}]}>
         {cards.map((c,i)=><tr key={c.id}>
           <td style={{...sTd,color:C.accent,fontWeight:600,fontSize:11}}>{c.id}</td>
@@ -1242,7 +1388,7 @@ function FoFTracker() {
   const renderCampaign = () => <div>
     <Section title="Mission Results">
       <button onClick={addMR} style={{...sBtn(false),marginBottom:6}}>+ Add Result</button>
-      {mResults.length>0 && <Table heads={[{l:"Mission",w:110},{l:"Result",w:100},{l:"Turns",w:50},{l:"FrKIA",w:52},{l:"EnKIA",w:52},{l:"Exp",w:80},{l:"Repl",w:50},{l:"Notes"}]}>
+      {mResults.length>0 && <Table heads={[{l:"Mission",w:110},{l:"Result",w:100},{l:"Turns",w:50},{l:"FrKIA",w:52},{l:"EnKIA",w:52},{l:"Exp",w:80},{l:"Repl",w:50},{l:"Notes"},{l:"",w:28}]}>
         {mResults.map((r,i)=><tr key={r.id}>
           <td style={{...sTd,color:C.accent}}>{r.mission}</td>
           <td style={sTd}><Inp value={r.result} onChange={v=>uMR(i,"result",v)} style={{minWidth:90}}/></td>
@@ -1252,12 +1398,13 @@ function FoFTracker() {
           <td style={sTd}><Inp value={r.exp} onChange={v=>uMR(i,"exp",v)} style={{minWidth:70}}/></td>
           <td style={sTd}><Inp type="number" value={r.repl} onChange={v=>uMR(i,"repl",v)} style={{width:44,textAlign:"center"}}/></td>
           <td style={sTd}><Inp value={r.notes} onChange={v=>uMR(i,"notes",v)}/></td>
+          <td style={sTd}><button onClick={()=>rmMR(i)} style={{background:"none",border:"none",color:C.red,cursor:"pointer",fontSize:13}}>✕</button></td>
         </tr>)}
       </Table>}
     </Section>
     <Section title="Replacements">
       <button onClick={addRepl} style={{...sBtn(false),marginBottom:6}}>+ Add Replacement</button>
-      {repls.length>0 && <Table heads={[{l:"After",w:90},{l:"Green",w:50},{l:"VetRtn",w:54},{l:"Total",w:50},{l:"Unit",w:90},{l:"Steps",w:50},{l:"Exp",w:80},{l:"Notes"}]}>
+      {repls.length>0 && <Table heads={[{l:"After",w:90},{l:"Green",w:50},{l:"VetRtn",w:54},{l:"Total",w:50},{l:"Unit",w:90},{l:"Steps",w:50},{l:"Exp",w:80},{l:"Notes"},{l:"",w:28}]}>
         {repls.map((r,i)=><tr key={r.id}>
           <td style={sTd}><Inp value={r.after} onChange={v=>uRepl(i,"after",v)} style={{minWidth:80}}/></td>
           <td style={sTd}><Inp type="number" value={r.green} onChange={v=>uRepl(i,"green",v)} style={{width:44,textAlign:"center"}}/></td>
@@ -1267,6 +1414,7 @@ function FoFTracker() {
           <td style={sTd}><Inp type="number" value={r.steps} onChange={v=>uRepl(i,"steps",v)} style={{width:44,textAlign:"center"}}/></td>
           <td style={sTd}><Sel value={r.exp} onChange={v=>uRepl(i,"exp",v)} options={EXP} style={{minWidth:72}}/></td>
           <td style={sTd}><Inp value={r.notes} onChange={v=>uRepl(i,"notes",v)}/></td>
+          <td style={sTd}><button onClick={()=>rmRepl(i)} style={{background:"none",border:"none",color:C.red,cursor:"pointer",fontSize:13}}>✕</button></td>
         </tr>)}
       </Table>}
     </Section>
@@ -1288,12 +1436,17 @@ function FoFTracker() {
     <div style={{background:C.bg,color:C.text,minHeight:"100vh",fontFamily:"'JetBrains Mono','Fira Code','SF Mono',monospace",fontSize:12}}>
       {/* HEADER */}
       <div style={{background:C.panel,borderBottom:`1px solid ${C.border}`,padding:"10px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:100}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
           <span style={{fontSize:14,fontWeight:800,color:C.accent,letterSpacing:1}}>FIELDS OF FIRE</span>
           <span style={{fontSize:10,color:C.textDim,borderLeft:`1px solid ${C.border}`,paddingLeft:10}}>{campaign} — {mission}</span>
-          <span style={{fontSize:10,color:C.accent}}>T{turn}</span>
-          <span style={{fontSize:10,color:actLvl==="No Contact"?C.green:actLvl==="Contact"?C.accent:C.red}}>{actLvl}</span>
-          {saveMsg && <span style={{fontSize:10,color:C.green,fontWeight:600,marginLeft:8}}>{saveMsg}</span>}
+          <span style={{fontSize:10,color:C.textDim}}>T</span>
+          <input type="number" value={turn} onChange={e=>setTurn(Math.max(1,+e.target.value||1))}
+            style={{background:"#1e1a14",border:"1px solid #4a3f30",color:C.accent,padding:"1px 4px",fontSize:11,borderRadius:3,width:32,textAlign:"center",outline:"none",fontWeight:400}}/>
+          <select value={actLvl} onChange={e=>setActLvl(e.target.value)}
+            style={{background:"#1e1a14",border:"1px solid #4a3f30",color:actLvl==="No Contact"?C.green:actLvl==="Contact"?C.accent:C.red,padding:"1px 4px",fontSize:10,borderRadius:3,cursor:"pointer",outline:"none",fontWeight:400}}>
+            {ACTIVITY.map(a=><option key={a} value={a}>{a}</option>)}
+          </select>
+          {saveMsg && <span style={{fontSize:10,color:C.green,fontWeight:600,marginLeft:4}}>{saveMsg}</span>}
         </div>
         <div style={{display:"flex",gap:4,alignItems:"center"}}>
           <button onClick={()=>setShowSaves(p=>!p)} style={{...sBtn(showSaves),fontSize:10}}>💾 Saves</button>
