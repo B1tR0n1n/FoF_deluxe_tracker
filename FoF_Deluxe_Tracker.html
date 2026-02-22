@@ -541,14 +541,14 @@ function FoFTracker() {
   const rmCU = (i)=>setCreatedUnits(p=>p.filter((_,j)=>j!==i));
 
   /* --- NCM --- */
-  const [ncmP, setNcmP] = useState({sa:false,auto:false,gren:false,sniper:false,hvy:false,flame:false,demo:false,inc:false,air:false,mines:false});
+  const [ncmP, setNcmP] = useState({sa:0,auto:0,hvy:0,gren:0,sniper:0,mines:0,inc:0,air:0});
   const [ncmT, setNcmT] = useState({cc:0,burst:0,cover:0});
   const [ncmM, setNcmM] = useState({xfire:false,conc:false,exp:false,pin:false,stack:false,grenM:false,demoM:false,smoke:0,vis:0});
-  const vofV = {sa:0,auto:-1,gren:-3,sniper:-3,hvy:-3,flame:-3,demo:-3,inc:-3,air:-4,mines:-3};
-  const bestVOF = Object.entries(ncmP).filter(([_,v])=>v).reduce((b,[k])=>Math.min(b,vofV[k]),99);
+  const bestVOF = Object.entries(ncmP).filter(([k,v])=>v!==0).reduce((b,[_,v])=>Math.min(b,v),99);
+  const bestVOFDisplay = bestVOF===-0.1?0:bestVOF;
   const tMod = ncmT.cc+ncmT.burst+ncmT.cover;
   const cMod = (ncmM.xfire?-1:0)+(ncmM.conc?-1:0)+(ncmM.exp?-2:0)+(ncmM.pin?2:0)+(ncmM.stack?-1:0)+(ncmM.grenM?-1:0)+(ncmM.demoM?-2:0)+ncmM.smoke+ncmM.vis;
-  const NCM = (bestVOF<99?bestVOF:0)+tMod+cMod;
+  const NCM = (bestVOF<99?(bestVOF===-0.1?0:bestVOF):0)+tMod+cMod;
 
   /* --- ENEMY --- */
   const [enemies, setEnemies] = useState([]);
@@ -733,7 +733,7 @@ function FoFTracker() {
       units,createdUnits,hqs,cmdGrids,enemies,weapons:wpns,fireMissions:fms,fmLog,
       radios,assets,pyros,journal,map:{...mapD,cards},
       campaign_log:{missionResults:mResults,replacements:repls},
-      ncm:{final:NCM,strongestVOF:bestVOF<99?bestVOF:0,terrainMod:tMod,combatMods:cMod},
+      ncm:{final:NCM,strongestVOF:bestVOF<99?(bestVOF===-0.1?0:bestVOF):0,terrainMod:tMod,combatMods:cMod},
     },null,2);
     const b=new Blob([data],{type:'application/json'});
     const u=URL.createObjectURL(b);
@@ -812,7 +812,7 @@ function FoFTracker() {
       setMapD({vof:0,spot:0,joint:0,mines:"No",pending:"No"});
       const arr=[];for(let r=1;r<=6;r++)for(let c=1;c<=6;c++)arr.push({id:`R${r}C${c}`,terrain:"",cc:0,pc:"",cleared:"",us:"",enemy:"",cover:"",notes:""});
       setCards(arr);
-      setNcmP({sa:false,auto:false,gren:false,sniper:false,hvy:false,flame:false,demo:false,inc:false,air:false,mines:false});
+      setNcmP({sa:0,auto:0,hvy:0,gren:0,sniper:0,mines:0,inc:0,air:0});
       setNcmT({cc:0,burst:0,cover:0});
       setNcmM({xfire:false,conc:false,exp:false,pin:false,stack:false,grenM:false,demoM:false,smoke:0,vis:0});
       flash("New mission started — campaign log preserved");
@@ -998,18 +998,40 @@ function FoFTracker() {
      ═══════════════════════════════════════════ */
   const renderCombat = () => <div>
     <Section title="NCM Calculator">
-      <Section title="Step 1: Strongest VOF (lowest value wins)" sub>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:2}}>
-          {[["sa","Small Arms S → 0"],["auto","Auto A → –1"],["hvy","Heavy H → –3"],["gren","Grenade G! → –3"],["sniper","Sniper S! → –3"],
-            ["flame","Flame F! → –3"],["demo","Demo D! → –3"],["mines","Mines! → –3"],["inc","Incoming! → –3"],["air","Air Strike! → –4"]
-          ].map(([k,l])=><label key={k} style={{display:"flex",alignItems:"center",gap:6,padding:"3px 8px",cursor:"pointer",fontSize:11,
-            borderRadius:3,background:ncmP[k]?`${C.accent}15`:"transparent"}}>
-            <input type="checkbox" checked={ncmP[k]} onChange={()=>setNcmP(p=>({...p,[k]:!p[k]}))} style={{accentColor:C.accent}}/>
-            <span style={{color:ncmP[k]?C.text:C.textDim}}>{l}</span>
-          </label>)}
+      <Section title="Step 1: VOF Present on Card (select combat modifier)" sub>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
+          {[["sa","Small Arms (S)",   [{v:-0.1,l:"0"}]],
+            ["auto","Automatic (A)",   [{v:-1,l:"–1"}]],
+            ["hvy","Heavy (H)",        [{v:-3,l:"–3"}]],
+            ["gren","Grenade (G!)",    [{v:-3,l:"–3"},{v:-4,l:"–4"}]],
+            ["sniper","Sniper (S!)",   [{v:-3,l:"–3"}]],
+            ["mines","Mines!",         [{v:-4,l:"–4"}]]
+          ].map(([k,label,opts])=><div key={k} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",
+            borderRadius:3,background:ncmP[k]!==0?`${C.accent}15`:"transparent"}}>
+            <span style={{color:ncmP[k]!==0?C.text:C.textDim,fontSize:11,minWidth:110,whiteSpace:"nowrap"}}>{label}</span>
+            <select value={ncmP[k]} onChange={e=>setNcmP(p=>({...p,[k]:Number(e.target.value)}))}
+              style={{background:C.inputBg,color:C.text,border:`1px solid ${C.border}`,borderRadius:3,padding:"2px 4px",fontSize:11,flex:1}}>
+              <option value={0}>—</option>
+              {opts.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
+            </select>
+          </div>)}
         </div>
-        <div style={{marginTop:6,padding:"6px 10px",background:C.inputBg,borderRadius:4,fontSize:12,color:C.accent}}>
-          Strongest VOF: <b>{bestVOF<99?bestVOF:"—"}</b>
+        <div style={{marginTop:6,borderTop:`1px solid ${C.border}`,paddingTop:6}}>
+          <div style={{fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:0.4,color:C.textDim,marginBottom:4}}>Varies — per mission instructions</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
+            {[["inc","Incoming!"],["air","Air Strike!"]].map(([k,label])=><div key={k} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",
+              borderRadius:3,background:ncmP[k]!==0?`${C.accent}15`:"transparent"}}>
+              <span style={{color:ncmP[k]!==0?C.text:C.textDim,fontSize:11,minWidth:110,whiteSpace:"nowrap"}}>{label}</span>
+              <input type="number" value={ncmP[k]||""} placeholder="NCM"
+                onChange={e=>{const v=e.target.value;setNcmP(p=>({...p,[k]:v===""?0:Number(v)}))}}
+                style={{background:C.inputBg,color:C.text,border:`1px solid ${C.border}`,borderRadius:3,padding:"2px 6px",fontSize:11,width:56,textAlign:"center",outline:"none"}}/>
+            </div>)}
+          </div>
+        </div>
+        <div style={{marginTop:6,padding:"6px 10px",background:C.inputBg,borderRadius:4,fontSize:12}}>
+          <span style={{color:C.textDim}}>Strongest VOF: </span>
+          <b style={{color:C.accent}}>{bestVOF<99?(bestVOF===-0.1?0:bestVOF):"—"}</b>
+          <div style={{marginTop:4,fontSize:10,color:C.textDim,fontStyle:"italic"}}>Flame (§6.5.3) and Demo (§6.5.2) resolve outside NCM. Demo Miss → –2 is under Step 3.</div>
         </div>
       </Section>
       <Section title="Step 2: Terrain & Cover (enter values from card)" sub>
